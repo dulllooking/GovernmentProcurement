@@ -1,6 +1,7 @@
 ﻿using GovernmentProcurement_ClassDB.Model;
 using HtmlAgilityPack;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -8,6 +9,7 @@ using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Web;
 using MailKit.Net.Smtp;
 using MimeKit;
@@ -54,7 +56,7 @@ namespace GovernmentProcurement_Console
             foreach (var item in dbProcurement) {
                 mailContent.Append($"<p><b>{indexNumber}.<br>{item.ProcuringEntity} | {HttpUtility.HtmlDecode(item.SubjectOfProcurement)}<br>預算金額: {item.Budget}</b></p><hr>");
                 indexNumber++;
-            }
+        }
             SendDataLinkMail(keyWord, toName, toMail, mailContent.ToString());
         }
 
@@ -69,6 +71,9 @@ namespace GovernmentProcurement_Console
             var queryLimitTenders = db.Procurement.Where(x => x.DateLimitOfTenders <= dateLimit);
             db.Procurement.RemoveRange(queryLimitTenders);
             db.SaveChanges();
+
+            // 指定查詢資料庫內標案最新一筆
+            var queryLastData = db.Procurement.OrderByDescending(x => x.Id).Take(1);
 
             // 執行單頁網頁爬蟲
             string strKeyWord = WebConfigurationManager.AppSettings["KeyWord"];
